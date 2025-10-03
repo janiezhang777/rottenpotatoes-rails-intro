@@ -8,17 +8,34 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.all_ratings
+    redirect = false
 
     if params[:ratings].present?
       @ratings_to_show = params[:ratings].keys
+      session[:ratings] = params[:ratings]
+    elsif session[:ratings] 
+      @ratings_to_show = session[:ratings].keys
+      redirect = true
     else
       @ratings_to_show = @all_ratings
     end
 
-    @sort_by = params[:sort_by]
+    if params[:sort_by]
+      @sort_by = params[:sort_by]
+      session[:sort_by] = @sort_by
+    elsif session[:sort_by]
+      @sort_by = session[:sort_by]
+      redirect = true
+    end
+
+    if redirect
+      flash.keep
+      redirect_to movies_path(:sort_by => @sort_by, :ratings => [] ) and return
+    end
 
     @movies = Movie.with_ratings(@ratings_to_show)
     @movies = @movies.order(@sort_by) if @sort_by.present?
+
   end
 
   def new
