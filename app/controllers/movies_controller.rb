@@ -11,7 +11,7 @@ class MoviesController < ApplicationController
     redirect = false
 
     if params[:ratings].present?
-      session[:ratings] = params[:ratings].is_a?(Hash) ? params[:ratings] : Hash[params[:ratings].map { |r| [r, '1'] }]
+      session[:ratings] = params[:ratings].to_h
       @ratings_to_show = session[:ratings].keys
     elsif session[:ratings] 
       @ratings_to_show = session[:ratings].keys
@@ -32,7 +32,10 @@ class MoviesController < ApplicationController
 
     if redirect
       flash.keep
-      redirect_to movies_path(:sort_by => @sort_by, :ratings => session[:ratings] || Hash[@all_ratings.map { |r| [r, '1'] }]) and return
+      redirect_to movies_path(
+        sort_by: @sort_by,
+        ratings: Hash[@ratings_to_show.map { |r| [r, '1'] }]
+      ) and return
     end 
 
     @movies = Movie.with_ratings(@ratings_to_show)
